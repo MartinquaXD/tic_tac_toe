@@ -7,13 +7,13 @@
 #include <iostream>
 
 void Console::disable_raw_mode() {
-    tcgetattr(STDIN_FILENO, &terminal);
-    terminal.c_lflag &= ECHO | ICANON;
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &terminal);
+    tcsetattr(STDIN_FILENO, TCSANOW, &original_settings);
 }
 
 void Console::enable_raw_mode() {
-    tcgetattr(STDIN_FILENO, &terminal);
+    tcgetattr(STDIN_FILENO, &original_settings);
+    terminal = original_settings;
+
     terminal.c_lflag &= ~(ECHO | ICANON);
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &terminal);
 }
@@ -22,7 +22,7 @@ Console::~Console() {
     disable_raw_mode();
 }
 
-Console::Console(): terminal{} {
+Console::Console(): terminal{}, original_settings() {
     enable_raw_mode();
 }
 
@@ -31,16 +31,16 @@ void Console::clear_screen() {
 }
 
 void Console::render_board(const GameState & state) {
-    render_line(7);
+    render_line(7, '_');
     render_board_row(state, 0, 2);
     render_board_row(state, 3, 5);
     render_board_row(state, 6, 8);
-    render_line(7);
+    render_line(7, '_');
 }
 
-void Console::render_line(unsigned int length) {
+void Console::render_line(unsigned int length, char line_segment) {
     for (int i = 0; i < length; ++i) {
-        std::cout << "_";
+        std::cout << line_segment;
     }
     std::cout << "\n";
 }
@@ -95,6 +95,7 @@ void Console::render_texts(Player player, std::optional<Player> winner, bool is_
 }
 
 void Console::render_screen(const GameState &state, Player player, std::optional<Player> winner, bool is_draw) {
+    clear_screen();
     render_board(state);
     render_texts(player, winner, is_draw);
 }

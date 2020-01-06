@@ -15,11 +15,12 @@
 class Console {
 private:
     struct termios terminal;
+    struct termios original_settings;
 
     void disable_raw_mode();
     void enable_raw_mode();
 
-    static void render_line(unsigned int length);
+    static void render_line(unsigned int length, char line_segment);
     static void render_board_row(const GameState& game_state, unsigned int start, unsigned int end);
     static void render_instructions();
     static void render_player_message(std::optional<Player> winner, bool is_draw, Player turn);
